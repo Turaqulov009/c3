@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import RegisterSerializers
+from .serializers import RegisterSerializers,LoginSerializers,RefreshSerializers
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -18,9 +18,8 @@ class ProfileAPIView(APIView):
     def get(self,request):
         return Response({
             "username":request.user.username,
-            "email":request.user.email,
+            "email":request.user.email
         })
-
 
 class LogoutAPIView(APIView):
     permission_classes=[IsAuthenticated]
@@ -29,12 +28,23 @@ class LogoutAPIView(APIView):
         try:
             refresh_token=request.data["refresh"]
             token=RefreshToken(refresh_token)
-            token.blacklist()
-
-            return Response({"message":"Logout succesfuly"},
-            status=status.HTTP_205_RESET_CONTENT
-            )
+            token=blacklist()
+            return Response({
+            "message":"logout succesfuly"
+            })
 
         except Exception:
-            return Response({"error":"Invalid refresh token"},
-            )
+            return Response({"message":"invalid"})
+
+class LoginAPIView(APIView):
+    def post(self,request):
+        serializers=LoginSerializers
+        serializers.is_valid(raise_exception=True)
+        return Response(serializers.validated_data, status=status.HTTP_200_OK)
+
+
+class RefreshAPIView(APIView):
+    def post(self,request):
+        serializers=RefreshSerializers(data=request.data)
+        serializers.is_valid(raise_exception=True)
+        return Response(serializers.validated_data)
